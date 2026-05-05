@@ -49,30 +49,38 @@
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
  <body class="h-full bg-white text-slate-700 overflow-auto">
-  <div id="app" class="w-full h-full p-6 md:p-10"><!-- Header -->
+  <div id="app" class="w-full h-full p-6 md:p-10">
+   <!-- Header -->
    <header class="mb-8 text-center">
     <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-purple-600 mb-2">Sequence Alignment Visualizer</h1>
     <p class="text-slate-400 text-sm">CSC 442 — Needleman-Wunsch &amp; Smith-Waterman Algorithms</p>
    </header><!-- Input Section -->
    <section class="max-w-4xl mx-auto bg-purple-50 rounded-xl p-6 mb-8 border border-purple-200">
     <div class="grid md:grid-cols-2 gap-5 mb-5">
-     <div><label for="seqA" class="block text-sm font-medium text-slate-700 mb-1">Sequence A</label> <input id="seqA" type="text" value="GCATGCG" placeholder="e.g. GCATGCG" class="w-full mono bg-white border border-purple-300 rounded-lg px-4 py-2.5 text-purple-700 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 uppercase tracking-widest">
+     <div>
+      <label for="seqA" class="block text-sm font-medium text-slate-700 mb-1">Sequence A</label> <input id="seqA" type="text" value="GCATGCG" placeholder="e.g. GCATGCG" class="w-full mono bg-white border border-purple-300 rounded-lg px-4 py-2.5 text-purple-700 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 uppercase tracking-widest">
      </div>
-     <div><label for="seqB" class="block text-sm font-medium text-slate-700 mb-1">Sequence B</label> <input id="seqB" type="text" value="GATTACA" placeholder="e.g. GATTACA" class="w-full mono bg-white border border-purple-300 rounded-lg px-4 py-2.5 text-purple-700 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 uppercase tracking-widest">
+     <div>
+      <label for="seqB" class="block text-sm font-medium text-slate-700 mb-1">Sequence B</label> <input id="seqB" type="text" value="GATTACA" placeholder="e.g. GATTACA" class="w-full mono bg-white border border-purple-300 rounded-lg px-4 py-2.5 text-purple-700 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 uppercase tracking-widest">
      </div>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-     <div><label for="match" class="block text-xs font-medium text-slate-600 mb-1">Match Score</label> <input id="match" type="number" value="8" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-center text-purple-700 font-semibold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
+     <div>
+      <label for="match" class="block text-xs font-medium text-slate-600 mb-1">Match Score</label> <input id="match" type="number" value="8" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-center text-purple-700 font-semibold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
      </div>
-     <div><label for="mismatch" class="block text-xs font-medium text-slate-600 mb-1">Mismatch Penalty</label> <input id="mismatch" type="number" value="-5" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-center text-purple-700 font-semibold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
+     <div>
+      <label for="mismatch" class="block text-xs font-medium text-slate-600 mb-1">Mismatch Penalty</label> <input id="mismatch" type="number" value="-5" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-center text-purple-700 font-semibold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
      </div>
-     <div><label for="gap" class="block text-xs font-medium text-slate-600 mb-1">Gap Penalty</label> <input id="gap" type="number" value="-3" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-center text-purple-700 font-semibold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
+     <div>
+      <label for="gap" class="block text-xs font-medium text-slate-600 mb-1">Gap Penalty</label> <input id="gap" type="number" value="-3" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-center text-purple-700 font-semibold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
      </div>
-     <div><label for="algo" class="block text-xs font-medium text-slate-600 mb-1">Algorithm</label> <select id="algo" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-slate-700 font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"> <option value="global">Global (Needleman-Wunsch)</option> <option value="local">Local (Smith-Waterman)</option> </select>
+     <div>
+      <label for="algo" class="block text-xs font-medium text-slate-600 mb-1">Algorithm</label> <select id="algo" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-slate-700 font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"> <option value="global">Global (Needleman-Wunsch)</option> <option value="local">Local (Smith-Waterman)</option> </select>
      </div>
     </div><button id="runBtn" class="w-full bg-purple-400 hover:bg-purple-500 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2 shadow-sm hover:shadow-md"> <i data-lucide="play" style="width:18px;height:18px;"></i> Run Alignment </button>
    </section><!-- Results -->
-   <section id="results" class="max-w-full mx-auto hidden animate-in"><!-- Matrix -->
+   <section id="results" class="max-w-full mx-auto hidden animate-in">
+    <!-- Matrix -->
     <div class="bg-white rounded-xl p-5 mb-6 border border-purple-200 shadow-sm">
      <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="grid-3x3" style="width:20px;height:20px;color:#a78bfa;"></i> <span id="matrix-title">Scoring Matrix</span></h2>
      <div class="matrix-wrapper" id="matrix-container"></div>
@@ -106,47 +114,51 @@
     }
 
     // Initialize Canva's Element SDK - allows users to edit colors, fonts, and text in Canva
-    window.elementSdk.init({
-      defaultConfig,
-      onConfigChange: async (config) => applyConfig(config),
-      
-      // Define which colors users can customize via Canva's color picker
-      mapToCapabilities: (config) => ({
-        recolorables: [
-          // Background color - largest surface area
-          { get: () => config.background_color || defaultConfig.background_color, 
-            set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
-          // Surface color - panels and containers
-          { get: () => config.surface_color || defaultConfig.surface_color, 
-            set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
-          // Text color - all text content
-          { get: () => config.text_color || defaultConfig.text_color, 
-            set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
-          // Primary action color - main buttons
-          { get: () => config.primary_action || defaultConfig.primary_action, 
-            set: (v) => { config.primary_action = v; window.elementSdk.setConfig({ primary_action: v }); } },
-          // Secondary action color - secondary buttons
-          { get: () => config.secondary_action || defaultConfig.secondary_action, 
-            set: (v) => { config.secondary_action = v; window.elementSdk.setConfig({ secondary_action: v }); } }
-        ],
-        borderables: [],
-        // Allow users to change the font family
-        fontEditable: {
-          get: () => config.font_family || defaultConfig.font_family || 'Outfit',
-          set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
-        },
-        fontSizeable: undefined
-      }),
-      
-      // Define which text fields appear in Canva's edit panel
-      mapToEditPanelValues: (config) => new Map([
-        ['app_title', config.app_title || defaultConfig.app_title]
-      ])
-    });
+    // Only initialize if the SDK is available (runs in Canva environment)
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (config) => applyConfig(config),
+        
+        // Define which colors users can customize via Canva's color picker
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            // Background color - largest surface area
+            { get: () => config.background_color || defaultConfig.background_color, 
+              set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+            // Surface color - panels and containers
+            { get: () => config.surface_color || defaultConfig.surface_color, 
+              set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+            // Text color - all text content
+            { get: () => config.text_color || defaultConfig.text_color, 
+              set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+            // Primary action color - main buttons
+            { get: () => config.primary_action || defaultConfig.primary_action, 
+              set: (v) => { config.primary_action = v; window.elementSdk.setConfig({ primary_action: v }); } },
+            // Secondary action color - secondary buttons
+            { get: () => config.secondary_action || defaultConfig.secondary_action, 
+              set: (v) => { config.secondary_action = v; window.elementSdk.setConfig({ secondary_action: v }); } }
+          ],
+          borderables: [],
+          // Allow users to change the font family
+          fontEditable: {
+            get: () => config.font_family || defaultConfig.font_family || 'Outfit',
+            set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+          },
+          fontSizeable: undefined
+        }),
+        
+        // Define which text fields appear in Canva's edit panel
+        mapToEditPanelValues: (config) => new Map([
+          ['app_title', config.app_title || defaultConfig.app_title]
+        ])
+      });
+    }
 
     // ============================================
     // SETUP - Wire up the Run Alignment button
     // ============================================
+    // Add click event listener to the Run button
     document.getElementById('runBtn').addEventListener('click', runAlignment);
 
     // ============================================
@@ -384,5 +396,5 @@
     // Lucide is the icon library - this converts the data-lucide attributes into actual SVG icons
     lucide.createIcons();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f693201544194b5',t:'MTc3NzkxNTQyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f70b00b5704f41c',t:'MTc3Nzk5Mzk5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
