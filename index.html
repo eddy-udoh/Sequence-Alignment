@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sequence Alignment Visualizer</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&amp;family=Outfit:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Outfit', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .matrix-table {
+      border-collapse: collapse;
+      margin: 0 auto;
+      display: table;
+    }
+    .matrix-cell {
+      width: 48px; height: 48px;
+      padding: 0;
+      display: table-cell;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 12px; font-weight: 600;
+      border: 1px solid #e9d5ff;
+      transition: all 0.3s ease;
+      background: white;
+      color: #6b21a8;
+    }
+    .cell-highlight {
+      background: #f3e8ff !important;
+      color: #7c3aed !important;
+      box-shadow: 0 0 12px rgba(196,181,253,0.3);
+      transform: scale(1.08);
+      z-index: 2;
+      position: relative;
+    }
+    .cell-max {
+      background: #e9d5ff !important;
+      color: #6b21a8 !important;
+      box-shadow: 0 0 12px rgba(168,85,247,0.3);
+    }
+    .matrix-wrapper { overflow-x: auto; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .animate-in { animation: fadeIn 0.4s ease forwards; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-white text-slate-700 overflow-auto">
+  <div id="app" class="w-full h-full p-6 md:p-10"><!-- Header -->
+   <header class="mb-8 text-center">
+    <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-purple-600 mb-2">Sequence Alignment Visualizer</h1>
+    <p class="text-slate-400 text-sm">CSC 442 — Needleman-Wunsch &amp; Smith-Waterman Algorithms</p>
+   </header><!-- Input Section -->
+   <section class="max-w-4xl mx-auto bg-purple-50 rounded-xl p-6 mb-8 border border-purple-200">
+    <div class="grid md:grid-cols-2 gap-5 mb-5">
+     <div><label for="seqA" class="block text-sm font-medium text-slate-700 mb-1">Sequence A</label> <input id="seqA" type="text" value="GCATGCG" placeholder="e.g. GCATGCG" class="w-full mono bg-white border border-purple-300 rounded-lg px-4 py-2.5 text-purple-700 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 uppercase tracking-widest">
+     </div>
+     <div><label for="seqB" class="block text-sm font-medium text-slate-700 mb-1">Sequence B</label> <input id="seqB" type="text" value="GATTACA" placeholder="e.g. GATTACA" class="w-full mono bg-white border border-purple-300 rounded-lg px-4 py-2.5 text-purple-700 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 uppercase tracking-widest">
+     </div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+     <div><label for="match" class="block text-xs font-medium text-slate-600 mb-1">Match Score</label> <input id="match" type="number" value="8" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-center text-purple-700 font-semibold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
+     </div>
+     <div><label for="mismatch" class="block text-xs font-medium text-slate-600 mb-1">Mismatch Penalty</label> <input id="mismatch" type="number" value="-5" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-center text-purple-700 font-semibold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
+     </div>
+     <div><label for="gap" class="block text-xs font-medium text-slate-600 mb-1">Gap Penalty</label> <input id="gap" type="number" value="-3" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-center text-purple-700 font-semibold focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
+     </div>
+     <div><label for="algo" class="block text-xs font-medium text-slate-600 mb-1">Algorithm</label> <select id="algo" class="w-full bg-white border border-purple-300 rounded-lg px-3 py-2 text-slate-700 font-medium focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"> <option value="global">Global (Needleman-Wunsch)</option> <option value="local">Local (Smith-Waterman)</option> </select>
+     </div>
+    </div><button id="runBtn" class="w-full bg-purple-400 hover:bg-purple-500 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2 shadow-sm hover:shadow-md"> <i data-lucide="play" style="width:18px;height:18px;"></i> Run Alignment </button>
+   </section><!-- Results -->
+   <section id="results" class="max-w-full mx-auto hidden animate-in"><!-- Matrix -->
+    <div class="bg-white rounded-xl p-5 mb-6 border border-purple-200 shadow-sm">
+     <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="grid-3x3" style="width:20px;height:20px;color:#a78bfa;"></i> <span id="matrix-title">Scoring Matrix</span></h2>
+     <div class="matrix-wrapper" id="matrix-container"></div>
+    </div><!-- Alignment Output -->
+    <div class="bg-white rounded-xl p-5 border border-purple-200 shadow-sm">
+     <h2 class="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="align-center" style="width:20px;height:20px;color:#a78bfa;"></i> Final Alignment</h2>
+     <div id="alignment-output" class="mono text-sm bg-purple-50 rounded-lg p-4 border border-purple-200"></div>
+    </div>
+   </section>
+  </div>
+  <script>
+    // ============================================
+    // ELEMENT SDK - Handles theming and customization
+    // ============================================
+    // These are the default colors and settings for the app
+    const defaultConfig = {
+      app_title: 'Sequence Alignment Visualizer',
+      background_color: '#581c87',      // Dark purple background
+      surface_color: '#6b21a8',         // Purple for panels
+      text_color: '#e2e8f0',            // Light text
+      primary_action: '#d8b4fe',        // Light purple for buttons
+      secondary_action: '#c084fc'       // Medium purple for accents
+    };
+
+    // Apply configuration changes to the page when user customizes colors
+    function applyConfig(config) {
+      document.body.style.backgroundColor = config.background_color || defaultConfig.background_color;
+      document.getElementById('main-title').textContent = config.app_title || defaultConfig.app_title;
+      document.querySelectorAll('.bg-slate-800').forEach(el => el.style.backgroundColor = config.surface_color || defaultConfig.surface_color);
+      document.getElementById('main-title').style.color = config.primary_action || defaultConfig.primary_action;
+    }
+
+    // Initialize Canva's Element SDK - allows users to edit colors, fonts, and text in Canva
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => applyConfig(config),
+      
+      // Define which colors users can customize via Canva's color picker
+      mapToCapabilities: (config) => ({
+        recolorables: [
+          // Background color - largest surface area
+          { get: () => config.background_color || defaultConfig.background_color, 
+            set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+          // Surface color - panels and containers
+          { get: () => config.surface_color || defaultConfig.surface_color, 
+            set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+          // Text color - all text content
+          { get: () => config.text_color || defaultConfig.text_color, 
+            set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+          // Primary action color - main buttons
+          { get: () => config.primary_action || defaultConfig.primary_action, 
+            set: (v) => { config.primary_action = v; window.elementSdk.setConfig({ primary_action: v }); } },
+          // Secondary action color - secondary buttons
+          { get: () => config.secondary_action || defaultConfig.secondary_action, 
+            set: (v) => { config.secondary_action = v; window.elementSdk.setConfig({ secondary_action: v }); } }
+        ],
+        borderables: [],
+        // Allow users to change the font family
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family || 'Outfit',
+          set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+        },
+        fontSizeable: undefined
+      }),
+      
+      // Define which text fields appear in Canva's edit panel
+      mapToEditPanelValues: (config) => new Map([
+        ['app_title', config.app_title || defaultConfig.app_title]
+      ])
+    });
+
+    // ============================================
+    // SETUP - Wire up the Run Alignment button
+    // ============================================
+    document.getElementById('runBtn').addEventListener('click', runAlignment);
+
+    // ============================================
+    // MAIN FUNCTION - Run Sequence Alignment
+    // ============================================
+    // This is the heart of the app - it performs the alignment algorithm
+    function runAlignment() {
+      // Step 1: Get the input values from the form
+      const seqA = document.getElementById('seqA').value.toUpperCase().trim();
+      const seqB = document.getElementById('seqB').value.toUpperCase().trim();
+      const match = parseInt(document.getElementById('match').value);        // Points for matching bases
+      const mismatch = parseInt(document.getElementById('mismatch').value);  // Penalty for mismatches
+      const gap = parseInt(document.getElementById('gap').value);            // Penalty for inserting gaps
+      const algo = document.getElementById('algo').value;                    // Which algorithm to use
+
+      // Validate that the user entered sequences
+      if (!seqA || !seqB) return;
+
+      // Step 2: Set up the matrix dimensions
+      // We add 1 to account for the empty string at the start
+      const n = seqA.length;
+      const m = seqB.length;
+      const rows = n + 1;      // Number of rows in our scoring matrix
+      const cols = m + 1;      // Number of columns in our scoring matrix
+
+      // Create the scoring matrix - filled with zeros initially
+      // This matrix holds the alignment scores at each position
+      const dp = Array.from({ length: rows }, () => Array(cols).fill(0));
+
+      // ============================================
+      // STEP 3: Initialize the matrix edges
+      // ============================================
+      // For global alignment, we fill the first row and column with gap penalties
+      // This represents the cost of starting with gaps
+      if (algo === 'global') {
+        for (let i = 0; i < rows; i++) dp[i][0] = i * gap;  // First column = increasing gap penalties
+        for (let j = 0; j < cols; j++) dp[0][j] = j * gap;  // First row = increasing gap penalties
+      }
+      // For local alignment, we keep first row/column as 0 (can start anywhere)
+
+      // ============================================
+      // STEP 4: Fill the scoring matrix
+      // ============================================
+      // This is where the algorithm calculates the best alignment scores
+      for (let i = 1; i < rows; i++) {
+        for (let j = 1; j < cols; j++) {
+          // Check if the current bases match
+          const s = seqA[i - 1] === seqB[j - 1] ? match : mismatch;
+
+          // Calculate three possible scores:
+          const diag = dp[i - 1][j - 1] + s;    // Diagonal = previous score + match/mismatch
+          const up = dp[i - 1][j] + gap;        // Up = previous score + gap penalty (deletion)
+          const left = dp[i][j - 1] + gap;      // Left = previous score + gap penalty (insertion)
+
+          // Choose the best score based on the algorithm
+          if (algo === 'global') {
+            dp[i][j] = Math.max(diag, up, left);  // Take the maximum (highest score)
+          } else {
+            // Local algorithm: also consider starting fresh (0)
+            dp[i][j] = Math.max(0, diag, up, left);
+          }
+        }
+      }
+
+      // ============================================
+      // STEP 5: Traceback - find the actual alignment
+      // ============================================
+      // Now we trace back through the matrix to reconstruct the alignment
+      const path = [];        // Keep track of which cells we visit
+      let alignA = '';        // Build the aligned sequence A
+      let alignB = '';        // Build the aligned sequence B
+      let i, j;               // Position trackers
+
+      if (algo === 'global') {
+        // Global: start from bottom-right corner
+        i = n; j = m;
+        while (i > 0 || j > 0) {
+          path.push([i, j]);
+          
+          if (i > 0 && j > 0) {
+            // We're in the middle - check where the score came from
+            const s = seqA[i - 1] === seqB[j - 1] ? match : mismatch;
+            
+            if (dp[i][j] === dp[i - 1][j - 1] + s) {
+              // Came from diagonal = match or mismatch
+              alignA = seqA[i - 1] + alignA;
+              alignB = seqB[j - 1] + alignB;
+              i--; j--;
+            } else if (dp[i][j] === dp[i - 1][j] + gap) {
+              // Came from above = deletion (gap in B)
+              alignA = seqA[i - 1] + alignA;
+              alignB = '-' + alignB;
+              i--;
+            } else {
+              // Came from left = insertion (gap in A)
+              alignA = '-' + alignA;
+              alignB = seqB[j - 1] + alignB;
+              j--;
+            }
+          } else if (i > 0) {
+            // Top edge: only bases from A left
+            alignA = seqA[i - 1] + alignA;
+            alignB = '-' + alignB;
+            i--;
+          } else {
+            // Left edge: only bases from B left
+            alignA = '-' + alignA;
+            alignB = seqB[j - 1] + alignB;
+            j--;
+          }
+        }
+        path.push([0, 0]);  // Mark the start point
+      } else {
+        // Local: find the cell with the highest score and start from there
+        let maxVal = 0;
+        i = 0; j = 0;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (dp[r][c] > maxVal) { 
+              maxVal = dp[r][c]; 
+              i = r; 
+              j = c; 
+            }
+          }
+        }
+        
+        // Traceback from the best score until we hit 0
+        while (i > 0 && j > 0 && dp[i][j] > 0) {
+          path.push([i, j]);
+          const s = seqA[i - 1] === seqB[j - 1] ? match : mismatch;
+          
+          if (dp[i][j] === dp[i - 1][j - 1] + s) {
+            alignA = seqA[i - 1] + alignA;
+            alignB = seqB[j - 1] + alignB;
+            i--; j--;
+          } else if (dp[i][j] === dp[i - 1][j] + gap) {
+            alignA = seqA[i - 1] + alignA;
+            alignB = '-' + alignB;
+            i--;
+          } else {
+            alignA = '-' + alignA;
+            alignB = seqB[j - 1] + alignB;
+            j--;
+          }
+        }
+        if (dp[i][j] === 0 && algo === 'local') path.push([i, j]);
+      }
+
+      // ============================================
+      // STEP 6: Prepare data for visualization
+      // ============================================
+      // Convert the path array into a set for quick lookup
+      // This helps us highlight which cells were part of the best alignment
+      const pathSet = new Set(path.map(p => p[0] + ',' + p[1]));
+
+      // Find the maximum cell for local alignment visualization
+      let maxCell = null;
+      if (algo === 'local') {
+        let mv = 0;
+        for (let r = 0; r < rows; r++)
+          for (let c = 0; c < cols; c++)
+            if (dp[r][c] > mv) { mv = dp[r][c]; maxCell = r + ',' + c; }
+      }
+
+      // ============================================
+      // STEP 7: Render the scoring matrix as HTML
+      // ============================================
+      const container = document.getElementById('matrix-container');
+      let html = '<table class="matrix-table">';
+      
+      // Header row - shows the bases of sequence B
+      html += '<tr>';
+      html += '<td class="matrix-cell bg-purple-200 text-slate-600 font-semibold"></td>';
+      html += '<td class="matrix-cell bg-purple-200 text-slate-600 font-semibold">-</td>';
+      for (let c = 0; c < m; c++) {
+        html += `<td class="matrix-cell bg-purple-200 text-purple-700 font-bold">${seqB[c]}</td>`;
+      }
+      html += '</tr>';
+
+      // Data rows - shows the scoring matrix
+      for (let r = 0; r < rows; r++) {
+        html += '<tr>';
+        
+        // First column - shows the bases of sequence A
+        const label = r === 0 ? '-' : seqA[r - 1];
+        html += `<td class="matrix-cell bg-purple-200 ${r === 0 ? 'text-slate-600' : 'text-purple-700 font-bold'}">${label}</td>`;
+        
+        // Fill in the scores, highlighting the traceback path
+        for (let c = 0; c < cols; c++) {
+          const key = r + ',' + c;
+          let cls = 'matrix-cell mono bg-white text-slate-700';
+          
+          // Highlight cells that are part of the alignment path
+          if (pathSet.has(key)) cls += ' cell-highlight';
+          
+          // Highlight the maximum cell for local alignment
+          if (maxCell === key) cls += ' cell-max';
+          
+          html += `<td class="${cls}">${dp[r][c]}</td>`;
+        }
+        html += '</tr>';
+      }
+      
+      html += '</table>';
+      container.innerHTML = html;
+
+      // ============================================
+      // STEP 8: Display the final alignment
+      // ============================================
+      // Get the final score
+      const score = algo === 'global' ? dp[n][m] : Math.max(...dp.flat());
+      
+      // Create the match line (shows | where bases match, spaces where they don't)
+      const mid = alignA.split('').map((c, idx) => c === alignB[idx] ? '|' : ' ').join('');
+      
+      // Build the output display
+      document.getElementById('alignment-output').innerHTML = `
+        <div class="mb-3"><span class="text-slate-500">Seq A:</span> <span class="text-purple-700 font-semibold">${alignA}</span></div>
+        <div class="mb-3"><span class="text-slate-500">      </span> <span class="text-slate-400">${mid}</span></div>
+        <div class="mb-4"><span class="text-slate-500">Seq B:</span> <span class="text-purple-700 font-semibold">${alignB}</span></div>
+        <div class="pt-3 border-t border-purple-200"><span class="text-slate-500">Algorithm:</span> <span class="text-purple-700 font-semibold">${algo === 'global' ? 'Needleman-Wunsch (Global)' : 'Smith-Waterman (Local)'}</span></div>
+        <div><span class="text-slate-500">Alignment Score:</span> <span class="text-purple-700 font-bold text-lg">${score}</span></div>
+      `;
+
+      // Update the title to show which algorithm was used
+      document.getElementById('matrix-title').textContent = `Scoring Matrix — ${algo === 'global' ? 'Needleman-Wunsch' : 'Smith-Waterman'}`;
+      
+      // Show the results section
+      document.getElementById('results').classList.remove('hidden');
+    }
+
+    // ============================================
+    // FINAL SETUP - Initialize Lucide Icons
+    // ============================================
+    // Lucide is the icon library - this converts the data-lucide attributes into actual SVG icons
+    lucide.createIcons();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f693201544194b5',t:'MTc3NzkxNTQyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
